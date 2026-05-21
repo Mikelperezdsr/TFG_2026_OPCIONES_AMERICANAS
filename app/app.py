@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 from methods.binomial import precio_binomial, construir_arbol
 from methods.diferencias_finitas import precio_diferencias_finitas, resolver_malla_completa
 from methods.monte_carlo import precio_monte_carlo, precio_monte_carlo_detallado
+from methods.baw import precio_baw
 from utils.black_scholes import precio_bs_europeo
 from utils.griegos import calcular_griegos
 
@@ -177,6 +178,10 @@ if calcular:
     )
     t_mc = (time.perf_counter() - t0) * 1000
 
+    t0 = time.perf_counter()
+    p_baw = precio_baw(S0, K, T, r, sigma, tipo)
+    t_baw = (time.perf_counter() - t0) * 1000
+
     if S0 == K:
         estado = "ATM"
     elif (tipo == 'put' and S0 < K) or (tipo == 'call' and S0 > K):
@@ -202,11 +207,12 @@ if calcular:
 
     st.markdown("<h3 style='color: #1a5276;'>Resultados</h3>", unsafe_allow_html=True)
 
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Binomial", f"{p_bin:.4f}", f"{t_bin:.1f} ms")
     col2.metric("Dif. finitas", f"{p_fd:.4f}", f"{t_fd:.1f} ms")
     col3.metric("Monte Carlo", f"{p_mc:.4f}", f"{t_mc:.1f} ms")
-    col4.metric("Europea (B-S)", f"{p_eu:.4f}", f"ref.")
+    col4.metric("BAW", f"{p_baw:.4f}", f"{t_baw:.1f} ms")
+    col5.metric("Europea (B-S)", f"{p_eu:.4f}", f"ref.")
 
     st.caption(f"Tipo: **{tipo.upper()}** | Estado: **{estado}** | Prima de ejercicio anticipado: **{p_bin - p_eu:.4f}**")
     st.divider()
@@ -252,6 +258,7 @@ if calcular:
         | Binomial (N={N_bin}) | {p_bin:.6f} | {t_bin:.1f} ms |
         | Dif. finitas ({N_S_fd}x{N_T_fd}) | {p_fd:.6f} | {t_fd:.1f} ms |
         | Monte Carlo (M={M_mc//1000}K) | {p_mc:.6f} | {t_mc:.1f} ms |
+        | BAW | {p_baw:.6f} | {t_baw:.1f} ms |
         | Europea (B-S) | {p_eu:.6f} | — |
         """)
 
